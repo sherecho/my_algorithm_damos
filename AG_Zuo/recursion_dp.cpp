@@ -9,6 +9,8 @@
 #include<stack>
 #include <utility>
 #include<queue>
+#include "time.h"
+#include<stdlib.h>
 using namespace std; 
 /*递归
 -汉诺塔问题
@@ -48,13 +50,21 @@ using namespace std;
      给你三个 参数 x，y，k
     返回“马”从(0,0)位置出发，必须走k步
     最后落在(x,y)上的方法数有多少种? 
- -咖啡问题
+ -咖啡问题-业务模型
   // 数组arr代表每一个咖啡机冲一杯咖啡的时间，每个咖啡机只能串行的制造咖啡。
   // 现在有n个人需要喝咖啡，只能用咖啡机来制造咖啡。
   // 认为每个人喝咖啡的时间非常短，冲好的时间即是喝完的时间。
   // 每个人喝完之后咖啡杯可以选择洗或者自然挥发干净，只有一台洗咖啡杯的机器，只能串行的洗咖啡杯。
   // 洗杯子的机器洗完一个杯子时间为a，任何一个杯子自然挥发干净的时间为b。
   // 四个参数：arr, n, a, b
+-二维数组最小累加和的问题
+  给定一个二维数组matrix，一个人必须从左上角出发，最后到达右下角
+   沿途只可以向下或者向右走，沿途的数字都累加就是距离累加和
+  返回最小距离累加和
+-思路一：建立一个dp表和matrix等规模，dp表的含义：从dp[0][0]出发到达dp【i】【j】的最小累加和
+       因此第一行没有别的选择，只能从左边过来，第一列也很好填，只能从上面过来，其它的格子依次从左边和上边找一个最小的填进去
+
+ 
   // 假设时间点从0开始，返回所有人喝完咖啡并洗完咖啡杯的全部过程结束后，至少来到什么时间点。
  总结：
   -1.从左-》右的尝试模型
@@ -646,6 +656,9 @@ class jumphorse{
     pair<int,int> target;
     int size;
 };
+
+
+//咖啡问题。业务模型
 class machine{
     public:  int starttime;
     int finishtime;
@@ -731,7 +744,44 @@ class coffe{
     private:
     
 };
+//二维数组最小累加和的问题
+class minsum{
+    public:
 
+ minsum(int x,int y,int randmax):X(x),Y(y),matrix(x,vector<int>(y,0))
+ {
+  srand(time(NULL));
+  for(int inde=0;inde<x;inde++){
+    for(int indey=0;indey<y;indey++){
+        int randomval=rand()%randmax;
+        matrix[inde][indey]=randomval;
+    }
+  }
+
+ }
+//思路一：建立一个dp表和matrix等规模，dp表的含义：从dp[0][0]出发到达dp【i】【j】的最小累加和
+//因此第一行没有别的选择，只能从左边过来，第一列也很好填，只能从上面过来，其它的格子依次从左边和上边找一个最小的填进去
+ int getminsum1(){
+   vector<vector<int>> dp_table(X,vector<int>(Y,0));
+   dp_table[0][0]=matrix[0][0];
+   for(int i=1;i<Y;i++){
+    dp_table[0][i]=dp_table[0][i-1]+matrix[0][i];
+   }
+   for(int i=1;i<X;i++){
+     dp_table[i][0]=dp_table[i-1][0]+matrix[i][0];
+   }
+   for(int i=1;i<X;i++){
+    for(int j=1;j<Y;j++){
+        dp_table[i][j]=min(dp_table[i][j-1],dp_table[i-1][j])+matrix[i][j];
+    }
+   }
+   return dp_table[X-1][Y-1];
+ }
+ private:
+ vector<vector<int>> matrix;
+ int X;
+ int Y;
+};
 int main(){
     /*
     Hanno h=Hanno(4);
