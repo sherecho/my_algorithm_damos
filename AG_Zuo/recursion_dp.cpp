@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -11,6 +12,7 @@
 #include<queue>
 #include "time.h"
 #include<stdlib.h>
+#include<cmath>
 using namespace std; 
 /*递归
 -汉诺塔问题
@@ -56,16 +58,64 @@ using namespace std;
   // 认为每个人喝咖啡的时间非常短，冲好的时间即是喝完的时间。
   // 每个人喝完之后咖啡杯可以选择洗或者自然挥发干净，只有一台洗咖啡杯的机器，只能串行的洗咖啡杯。
   // 洗杯子的机器洗完一个杯子时间为a，任何一个杯子自然挥发干净的时间为b。
-  // 四个参数：arr, n, a, b
+  // 四个参数：arr, n, a, b 
+ // 假设时间点从0开始，返回所有人喝完咖啡并洗完咖啡杯的全部过程结束后，至少来到什么时间点。
 -二维数组最小累加和的问题
   给定一个二维数组matrix，一个人必须从左上角出发，最后到达右下角
    沿途只可以向下或者向右走，沿途的数字都累加就是距离累加和
   返回最小距离累加和
--思路一：建立一个dp表和matrix等规模，dp表的含义：从dp[0][0]出发到达dp【i】【j】的最小累加和
+  -思路一：建立一个dp表和matrix等规模，dp表的含义：从dp[0][0]出发到达dp【i】【j】的最小累加和
        因此第一行没有别的选择，只能从左边过来，第一列也很好填，只能从上面过来，其它的格子依次从左边和上边找一个最小的填进去
-
- 
-  // 假设时间点从0开始，返回所有人喝完咖啡并洗完咖啡杯的全部过程结束后，至少来到什么时间点。
+   -思路二：数组压缩 （小技巧：空间压缩）
+    -扩展，如果一个动态规划问题依赖左上角和上方也可以进行数组压缩
+    -如果依赖左方，上方也可以进行数组压缩
+    -如果依赖左上，上，左，依然可以进行数组压缩（增加一个临时变量记录左上的值）
+     进一步扩展：
+     压缩数组可以采用行也可以采用列
+- arr是货币数组，其中的值都是正数。再给定一个正数aim。
+  每个值都认为是一张货币，
+  即便是值相同的货币也认为每一张都是不同的，
+   返回组成aim的方法数
+   例如：arr = {1,1,1}，aim = 2
+   第0个和第1个能组成2，第1个和第2个能组成2，第0个和第2个能组成2
+   一共就3种方法，所以返回3
+   -分析：属于从左往右的模型
+-进阶版：arr是面值数组，其中的值都是正数且没有重复。再给定一个正数aim。
+ 每个值都认为是一种面值，且认为张数是无限的。
+ 返回组成aim的方法数
+ 例如：arr = {1,2}，aim = 4
+ 方法如下：1+1+1+1、1+1+2、2+2
+ 一共就3种方法，所以返回3
+ -记忆化搜索和严格表结构在每个格子没有枚举行为的时候性能一样好
+ -有枚举行为表结构可以继续优化:
+  分析表结构：列为index横轴为rest
+    I
+  -------------------
+ R: 0|1|2|3|4|5|6|7|8|9|
+  ———————————————————————
+    a|b|c|d|e|f|g|h|i|j
+  根据程序可以知道想要求出8依赖的是i，（假设arr[8]=1),i，g,h，f,...a
+  而7 依赖的是h,g,...a
+  因此可以看出7，和8存在一部分重复
+  可以有7+i得到8
+-货币问题进一步扩展
+ arr是货币数组，其中的值都是正数。再给定一个正数aim。
+ 每个值都认为是一张货币，
+ 认为值相同的货币没有任何不同，
+ 返回组成aim的方法数
+ 例如：arr = {1,2,1,1,2,1,2}，aim = 4
+ 方法：1+1+1+1、1+1+2、2+2
+ 一共就3种方法，所以返回3
+-给定5个参数，N，M，row，col，k
+  表示在N*M的区域上，醉汉Bob初始在(row,col)位置
+  Bob一共要迈出k步，且每步都会等概率向上下左右四个方向走一个单位
+  任何时候Bob只要离开N*M的区域，就直接死亡
+  返回k步之后，Bob还在N*M的区域的概率
+-给定3个参数，N，M，K
+ 怪兽有N滴血，等着英雄来砍自己
+ 英雄每一次打击，都会让怪兽流失[0~M]的血量
+  到底流失多少？每一次在[0~M]上等概率的获得一个值
+  求K次打击之后，英雄把怪兽砍死的概率
  总结：
   -1.从左-》右的尝试模型
   -2.范围尝试模型（在L-R范围上尝试）
@@ -656,8 +706,6 @@ class jumphorse{
     pair<int,int> target;
     int size;
 };
-
-
 //咖啡问题。业务模型
 class machine{
     public:  int starttime;
@@ -745,6 +793,7 @@ class coffe{
     
 };
 //二维数组最小累加和的问题
+//扩展：所有依赖左边和上方的dptale都可以用这种方式进行一维表替代。
 class minsum{
     public:
 
@@ -777,11 +826,373 @@ class minsum{
    }
    return dp_table[X-1][Y-1];
  }
+ //用一个和matrix大小相同的数组占用了太多的空间，可以只使用一个一维数组代替。当满足左方和上方依赖的dptable都可以使用这种方法进行替代
+  int getminsum2(){
+    vector<int>dp_table(Y,0);
+    dp_table[0]=matrix[0][0];
+   for(int i=1;i<Y;i++){
+    dp_table[i]=dp_table[i-1]+matrix[0][i];
+   }
+   //一维的dp——table 在没更新的时候就是上方的值，左方的值是已更新的左边的值，因此一维数组就可以完成上述方法1的依赖关系的更新
+   for(int i=1;i<X;i++){
+    //更新最左边的列
+    dp_table[0]+=matrix[i][0];
+    for(int j=1;j<Y;j++){
+        dp_table[j]=min(dp_table[j-1],dp_table[j])+matrix[i][j];
+    }
+   }
+   return dp_table[Y-1];
+  }
+ 
  private:
  vector<vector<int>> matrix;
  int X;
  int Y;
 };
+
+//arr是货币数组，其中的值都是正数。再给定一个正数aim。
+//   每个值都认为是一张货币，
+//   即便是值相同的货币也认为每一张都是不同的
+class coinproblem1{
+    public:
+    coinproblem1(int len,int a):arrlen(len),aim(a),arr(len,0){
+        srand((unsigned)time(NULL));
+        for(auto &num : arr) {
+            int random =rand()%10;
+            num=random;
+        }
+    }
+    int rec_getstrategy(){
+    return  subtask(aim,0);
+    }
+    int subtask(int rest,int index){
+     if(rest<0)
+        return 0;
+     if(index==arr.size()){//no money 
+        return rest==0? 1:0;
+     }
+     int res=subtask(rest,index+1)+subtask(rest-arr[index],index+1);
+     return res;
+     }
+    int dp_getstrategy(){
+        vector<vector<int>> dp_table(aim+1,vector<int>(arr.size()+1,0));
+        dp_table[0][arr.size()]=1;
+        for(int i=1;i<aim+1;i++){
+            dp_table[i][arr.size()]=0;
+        }
+        for(int r=0;r<aim+1;r++){
+        for(int index=arr.size()-1;index>=0;index--){    
+            int res=((r-arr[index])>=0)?dp_table[r-arr[index]][index+1]:0;
+             dp_table[r][index]=dp_table[r][index+1]+res;
+            }
+        }
+        return dp_table[aim][0];
+    }
+    private:
+    int arrlen;
+    int aim;
+    vector<int> arr;
+};
+//no limit 版本
+/*-进阶版：arr是面值数组，其中的值都是正数且没有重复。再给定一个正数aim。
+ 每个值都认为是一种面值，且认为张数是无限的。
+ 返回组成aim的方法数
+ 例如：arr = {1,2}，aim = 4
+ 方法如下：1+1+1+1、1+1+2、2+2
+ 一共就3种方法，所以返回3
+*/
+class coinproblem2{
+    public:
+    coinproblem2(int len,int a):arrlen(len),aim(a),arr(len,0){
+         srand((unsigned)time(NULL));
+        //  cout<<"len"<<len<<endl;
+        //  cout<<"a"<<a<<endl;
+        //  cout<<"arr:"<<std::flush;;
+        for(auto &num : arr) {
+            int random =rand()%10+1;
+            num=random;
+            // cout<<num<<std::flush;;
+        }
+    }
+    int rv_stra(){
+     return subtask(aim,0);
+    }
+    int subtask(int rest,int index){
+      if(rest<0)
+        return 0;
+       if(index==arr.size())
+          return rest==0? 1:0;
+        int ways=0;
+        for(int num=0;num*arr[index]<=rest;num++){
+         ways+=subtask(rest-(num*arr[index]),index+1);
+        }
+        return ways;
+    }
+    int dp_stra(){
+    vector<vector<int>> dp_table(aim+1,vector<int>(arr.size()+1,0));
+        dp_table[0][arr.size()]=1;
+        for(int i=1;i<aim+1;i++){
+            dp_table[i][arr.size()]=0;
+        }
+        for(int r=0;r<aim+1;r++){
+            for(int index=arr.size()-1;index>=0;index--){
+                int ways=0;
+               for(int num=0;num*arr[index]<=r;num++){
+                 ways+=dp_table[r-(num*arr[index])][index+1];
+               }
+               dp_table[r][index]=ways;
+            }
+        }
+        return dp_table[aim][0];
+   }
+    int dp_stra2(){
+        vector<vector<int>> dp_table(aim+1,vector<int>(arr.size()+1,0));
+        dp_table[0][arr.size()]=1;
+        for(int i=1;i<aim+1;i++){
+            dp_table[i][arr.size()]=0;
+        }
+        for(int r=0;r<aim+1;r++){
+            for(int index=arr.size()-1;index>=0;index--){
+               int ways=0;
+               if((r-arr[index])>=0)
+                ways=dp_table[r-arr[index]][index];
+               else ways=0;
+               dp_table[r][index]=ways+dp_table[r][index+1];
+            }
+        }
+        return dp_table[aim][0];
+        }
+    /*  分析表结构：列为index横轴为rest
+    I
+  -------------------
+ R: 0|1|2|3|4|5|6|7|8|9|
+  ———————————————————————
+    a|b|c|d|e|f|g|h|i|j
+  根据程序可以知道想要求出8依赖的是i，（假设arr[8]=1),i，g,h，f,...a
+  而7 依赖的是h,g,...a
+  因此可以看出7，和8存在一部分重复
+  可以有7+i得到8
+  */
+   
+    private:
+    vector<int> arr;
+    int arrlen;
+    int aim;
+
+};
+class coinproblem3{
+    public:
+    coinproblem3(int len,int a):arrlen(len),aim(a),arr(len,0){
+         srand((unsigned)time(NULL));
+        //  cout<<"len"<<len<<endl;
+        //  cout<<"a"<<a<<endl;
+        //  cout<<"arr:"<<std::flush;;
+        for(auto &num : arr) {
+            int random =rand()%10+1;
+            num=random;
+            // cout<<num<<std::flush;;
+        }
+    }
+    void convert(){
+        unordered_map<int,int>mymap;
+        for( int coin:arr){
+            if(mymap.find(coin)!=mymap.end()){
+                mymap[coin]++;     
+            }
+            else{
+                mymap[coin]=1;
+            }
+        }
+        int len=mymap.size();
+        coinarr.resize(len);
+        coinnum.resize(len);
+        int i=0;
+        for(auto coin:mymap){   
+            coinarr[i]=coin.first;
+            coinnum[i]=coin.second;
+            i++;
+        }
+    }
+    int rv_stra(){
+     return  subtask(aim,0);
+    }
+    int subtask(int rest ,int index){
+    if(rest<0)
+      return 0;
+    if(index==coinarr.size())
+      return (rest==0)?1:0;
+    int ways=0;
+    for(int num=0;(num<=coinnum[index])&&(num*coinarr[index]<=rest);num++){
+        ways+=subtask(rest-num*coinarr[index],index+1);
+    }
+    return ways;
+    }
+    int dp_stra(){
+        vector<vector<int>>dp_table(aim+1,vector<int>(coinarr.size()+1,0));
+        dp_table[0][coinarr.size()]=1;
+        for(int r=0;r<aim+1;r++){
+            for(int index =coinarr.size()-1;index>=0;index--){
+                int ways=0;
+                  for(int num=0;(num<=coinnum[index])&&(num*coinarr[index]<=r);num++){
+                       ways+=dp_table[r-num*coinarr[index]][index+1];
+                    }
+                    dp_table[r][index]=ways;
+                }  
+        }
+        return dp_table[aim][0];
+    }
+    //dp表进一步优化
+    int dp_stra2(){
+    vector<vector<int>>dp_table(aim+1,vector<int>(coinarr.size()+1,0));
+        dp_table[0][coinarr.size()]=1;
+        for(int r=0;r<aim+1;r++){
+            for(int index =coinarr.size()-1;index>=0;index--){
+                int ways=0;
+                if((r-coinarr[index])>=0)
+                   ways+=dp_table[r-coinarr[index]][index];
+                if((r-(coinnum[index]+1)*coinarr[index])>=0)
+                    ways-=dp_table[r-(coinnum[index]+1)*coinarr[index]][index+1];
+                dp_table[r][index]=ways+dp_table[r][index+1];
+
+                }  
+        }
+        return dp_table[aim][0];    
+    }
+    private:
+    int arrlen;
+    vector<int> arr;
+    int aim;
+    vector<int> coinarr;
+    vector<int> coinnum;
+    
+};
+
+/*-给定5个参数，N，M，row，col，k
+  表示在N*M的区域上，醉汉Bob初始在(row,col)位置
+  Bob一共要迈出k步，且每步都会等概率向上下左右四个方向走一个单位
+  任何时候Bob只要离开N*M的区域，就直接死亡
+  返回k步之后，Bob还在N*M的区域的概率*/
+class BOB_LIVE{
+    public:
+    BOB_LIVE(int M,int N):M(M),N(N){
+    
+    }
+    double live_af_k(int k,int row,int col){
+        double po=(double)(subtask(k,row,col))/((double)pow(4,k));
+        return po;
+    }
+    int subtask(int rest,int row,int col){
+        if(((row>=M)||(col>=N)||(row<0)||(col<0)))
+          return 0;
+        if(rest==0){
+            return 1;
+        }
+        int res=0;
+        res+=subtask(rest-1,row-1,col);
+        res+=subtask(rest-1,row+1,col);
+        res+=subtask(rest-1,row,col-1);
+        res+=subtask(rest-1,row,col+1);
+        return res;
+    }
+    //dp 版本
+    double dp_live_af_k(int k,int row,int col){
+        vector<vector<vector<int>>> dp_table(k+1,vector<vector<int>>(M,vector<int>(N,0)));
+        for(int i=0;i<N;i++){
+            for(int j=0;j<M;j++){
+                dp_table[0][j][i]=1;
+            }
+        }
+        for(int r=1;r<k+1;r++){
+            for(int x=0;x<M;x++){
+                for(int y=0;y<N;y++){
+                    int res=0;
+                    bool C=check(x+1, y);
+                    if(C)
+                       res+=dp_table[r-1][x+1][y];
+                    C=check(x-1, y);
+                    if(C)
+                       res+=dp_table[r-1][x-1][y];
+                    C=check(x,y-1);
+                    if(C)
+                       res+=dp_table[r-1][x][y-1];
+                    C=check(x, y+1);
+                    if(C)
+                       res+=dp_table[r-1][x][y+1];     
+                    dp_table[r][x][y]=res;
+                }
+            }
+        }
+        double res= double(dp_table[k][row][col])/(double)pow(4,k);
+        return res;
+    }
+    bool check(int x,int y){
+        return (!((x<0)||(y<0)||(x>=M)||(y>=N)));
+    }
+    private:
+    int M, N;
+};
+
+/*给定3个参数，N，M，K
+怪兽有N滴血，等着英雄来砍自己
+英雄每一次打击，都会让怪兽流失[0~M]的血量
+到底流失多少？每一次在[0~M]上等概率的获得一个值
+求K次打击之后，英雄把怪兽砍死的概率
+*/
+class kill_monster{
+    public:
+    kill_monster(int M ,int K,int N):M(M),N(N),K(K){
+
+    }
+    /*给定3个参数，N，M，K
+     怪兽有N滴血，等着英雄来砍自己
+     英雄每一次打击，都会让怪兽流失[0~M]的血量
+     到底流失多少？每一次在[0~M]上等概率的获得一个值
+     求K次打击之后，英雄把怪兽砍死的概率*/
+    double rv_kill(){
+        int n1=pow(M+1,K);
+        int n2=subtask(N,K);
+        return (double)n2/(double)n1;
+    }
+    int subtask(int rest_b,int rest_k){
+     if(rest_k==0)
+        return rest_b>0? 0:1;
+     if(rest_b<=0){
+        return pow(M+1,rest_k);
+     }
+     int ways=0;
+     for(int i=0;i<=M;i++){
+        ways+=subtask(rest_b-i,rest_k-1);
+     }
+     return ways;
+    }
+    double dp_monster(){
+      vector<vector<int>> dp_table(N+1,vector<int>(K+1,0));
+      dp_table[0][0]=1;
+     for(int i=1;i<=K;i++){
+        dp_table[0][i]=pow(M+1,i);
+     }
+      for(int k=1;k<K+1;k++){
+       for(int b=1;b<N+1;b++){
+           int ways=0;
+           for(int i=0;i<=M;i++){ 
+            if((b-i)>=0)       
+               ways+=dp_table[b-i][k-1];
+            else 
+               ways+=pow(M+1,k-1);
+
+           }
+           dp_table[b][k]=ways;
+       }
+    }
+    int n1=pow(M+1,K);
+    int n2=dp_table[N][K];
+    return  (double)n2/(double)n1;
+    }
+    private:
+    int M;
+    int K;
+    int N; 
+    };
 int main(){
     /*
     Hanno h=Hanno(4);
@@ -831,7 +1242,7 @@ int main(){
      jumphorse jp(0,2);
      cout<<jp.ways(10)<<endl;
      cout<<jp.ways_dp(10)<<endl;*/
-     coffe cf;
+     /*coffe cf;
      vector<int>mt={2,4,5,7};
      int nump=12;
      int washt=4;
@@ -839,6 +1250,115 @@ int main(){
      int tmp1=cf.mintime(mt, nump,  washt,  selft);
      int tmp2=cf.mintime_dp(mt, nump,  washt,  selft);
      cout<<tmp1;
-     cout<<" "<<tmp2;
+     cout<<" "<<tmp2;*/
+     /*
+     //测试二维数组最小累加和的问题
+     for(int i=0;i<100;i++){
+      minsum ma(10,10,100);
+      int result1=ma.getminsum1();
+      int result2=ma.getminsum2();
+      if(result1!=result2)
+      {
+        cout<<"error"<<endl;
+        cout<<result1<<endl;
+        cout<<result2<<endl;
+        break;
+      }
+     }
+      cout<<"finish"<<endl;*/
+      /*
+      //测试货币问题
+      srand(time(NULL));
+      for(int i=0;i<100;i++){
+        int random=rand()%20;
+        int random2=rand()%20;
+        coinproblem1 cb(random,random2);
+        int res1=cb.rec_getstrategy();
+        int res2=cb.dp_getstrategy();
+        if(res1!=res2){
+            cout<<"error"<<endl;
+            cout<<res1<<endl;
+            cout<<res2<<endl;
+            break;
+        }     
+      }
+      cout<<"finish"<<endl;*/
+      //测试货币问题无限制版本
+      /*srand(time(NULL));
+      for(int i=0;i<100;i++){
+        int random=rand()%7+1;
+        int random2=rand()%7+1;
+        coinproblem2 cb(random,random2);
+        int res1=cb.dp_stra2();
+        int res2=cb.dp_stra();
+        //cout<<res2<<endl;
+        if(res1!=res2){
+            cout<<"error"<<endl;
+            cout<<res1<<endl;
+            cout<<res2<<endl;
+            break;
+        }     
+      }
+      cout<<"finish"<<endl;*/
+      //测试纸币有张数版本：
+      /*
+      srand(time(NULL));
+      for(int i=0;i<100;i++){
+        int random=rand()%7+1;
+        int random2=rand()%7+1;
+        coinproblem3 cb(random,random2);
+        cb.convert();
+        int res1=cb.dp_stra();
+        int res2=cb.dp_stra2();
+        //cout<<res2<<endl;
+        if(res1!=res2){
+            cout<<"error"<<endl;
+            cout<<res1<<endl;
+            cout<<res2<<endl;
+            break;
+        }     
+      }
+      cout<<"finish"<<endl;*/
+      //测试BOB醉汉生存率问题
+      /*
+      srand(time(NULL));
+      for(int i=0;i<100;i++){
+        int random=rand()%7+1;
+        int random2=rand()%7+1;
+        BOB_LIVE bl(random,random2);
+        int random3=rand()%10+1;
+        int random4=rand()%random;
+        int random5=rand()%random2;
+        double res1=bl.live_af_k(random3,random4,random5);
+
+        double res2=bl.dp_live_af_k(random3,random4,random5);
+        //cout<<res2<<endl;
+        if(res1!=res2){
+            cout<<"error"<<endl;
+            cout<<res1<<endl;
+            cout<<res2<<endl;
+            //break;
+        }     
+      }
+      cout<<"finish"<<endl;*/
+      //验证kill monster问题
+      srand(time(NULL));
+      for(int i=0;i<100;i++){
+        int random=rand()%7+1;
+        int random2=rand()%7+1;
+        int random3=rand()%7+1;
+        kill_monster km(random,random2,random3);
+        double res1=km.rv_kill();
+        double res2=km.dp_monster();
+        //cout<<res2<<endl;
+        if(res1!=res2){
+            cout<<"error"<<endl;
+            cout<<res1<<endl;
+            cout<<res2<<endl;
+            //break;
+        }     
+      }
+      cout<<"finish"<<endl;
      return 0;
+
 }
