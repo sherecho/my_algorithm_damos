@@ -1184,11 +1184,35 @@ class kill_monster{
            dp_table[b][k]=ways;
        }
     }
-    int n1=pow(M+1,K);
-    int n2=dp_table[N][K];
-    return  (double)n2/(double)n1;
+     double n1=pow(M+1,K);
+     double n2=dp_table[N][K];
+     return n2/n1;
     }
-    private:
+    double dp_monster2(){
+        vector<vector<int>> dp_table(N+1,vector<int>(K+1,0));
+        dp_table[0][0]=1;
+        for(int i=1;i<K+1;i++){
+            dp_table[0][i]=pow(M+1,i);
+        }
+        for(int b=1;b<N+1;b++){
+            for(int k=1;k<K+1;k++){
+                int tmp1=dp_table[b-1][k];
+                int tmp2=dp_table[b][k-1];
+                int tmp3=0;
+                if(b-M-1>0){
+                  tmp3=dp_table[b-1-M][k-1];
+                }
+                else
+                  tmp3=pow(M+1,k-1);
+                dp_table[b][k]=tmp1+tmp2-tmp3;
+            }
+        }
+        int n1=pow(M+1,K);
+        int n2=dp_table[N][K];
+        return (double)n2/(double)n1; 
+    }
+    
+    private:  
     int M;
     int K;
     int N; 
@@ -1348,7 +1372,7 @@ int main(){
         int random2=rand()%7+1;
         int random3=rand()%7+1;
         kill_monster km(random,random2,random3);
-        double res1=km.rv_kill();
+        double res1=km.dp_monster2();
         double res2=km.dp_monster();
         //cout<<res2<<endl;
         if(res1!=res2){
