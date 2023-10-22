@@ -1,14 +1,24 @@
+#include <cstddef>
 #include<iostream>
 #include<vector>
+#include"time.h"
+#include "stdlib.h"
 using namespace std;
-void process(vector<int>& arr,int L,int R,int &count);
-void mergesort(vector<int>& arr,int &count){
- if(arr.size()==0){
+
+void process(vector<int>& arr,int L,int R,long long &count);
+void mergesort2(vector<int>& arr,long long &count){
+ if(arr.size()==1){
     return;
  }
    process(arr,0,arr.size()-1,count);
  }
-void process(vector<int> &arr,int L,int R,int & count){
+void mergesort(vector<int>& arr,long long &count){
+ if(arr.size()==1){
+    return;
+ }
+   process(arr,1,arr.size()-1,count);
+ }
+void process(vector<int> &arr,int L,int R,long long & count){
       if(L>=R)
          return;
       int mid=L+((R-L)/2);
@@ -26,8 +36,7 @@ void process(vector<int> &arr,int L,int R,int & count){
         else{
             tmp[i]=arr[p2]; 
             count+=(mid-p1+1);
-            p2++;
-           
+            p2++;      
         }
         i++;
       }
@@ -44,21 +53,37 @@ void process(vector<int> &arr,int L,int R,int & count){
 
 int main(){
  int len;
- cin>>len;
- while(len!=0){
-    vector<int> arr(len,0);
-    //cout<<"len  "<<len<<endl;
- for(int i=0;i<len;i++){
-    cin>>arr[i];
+  cin>>len;
+ srand((unsigned)(NULL));
+ while(len>0){
+    len--;
+    vector<int> arrorigin(len,0);
+    vector<int>arrcopy(len,0);
+    vector<int> arr(len+1,0);
+ for(int i=1;i<len+1;i++){
+    // cin>>arr[i];
+    // cin>>arrcopy[i-1];
+    arr[i]=rand()%10+1;
+    arrorigin[i-1]=arr[i];
+    arrcopy[i-1]=arr[i];
  }
-  int count=0;
-  mergesort(arr,count);
-  cout<<count<<endl;
-  //cout<<"arr:"<<endl;
-  // for(int i=0;i<len;i++){
-  //   cout<<arr[i]<<endl;
-  // }
- cin>>len;
+  long long cnt=0,cnt2=0;
+  mergesort(arr,cnt);
+  mergesort2(arrorigin,cnt2);
+  if(cnt!=cnt2){
+    cout<<"error"<<endl;
+    cout<<cnt2<<endl;
+    cout<<cnt;
+    cout<<"arr:"<<endl;
+    for (auto a:arrcopy){
+      cout<<a<<endl;
+    }
+    cnt=0;
+
+    break;
+  }
+  // cout<<cnt<<endl;
+  // cin>>len;
  }
 return 0;
 }
